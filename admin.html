@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Control - Carga de APKs</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #0d1117;
+            color: #e6edf3;
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: #161b22;
+            padding: 30px;
+            border-radius: 12px;
+            border: 1px solid #30363d;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+        }
+        h1 {
+            color: #58a6ff;
+            font-size: 24px;
+            margin-bottom: 5px;
+            text-align: center;
+        }
+        p.subtitle {
+            color: #8b949e;
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 14px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #c9d1d9;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            border-radius: 6px;
+            color: #e6edf3;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        input:focus, select:focus, textarea:focus {
+            border-color: #58a6ff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+        }
+        .row {
+            display: flex;
+            gap: 15px;
+        }
+        .row .form-group {
+            flex: 1;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #238636;
+            color: #ffffff;
+            border: 1px solid rgba(240,246,252,0.1);
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #2ea043;
+        }
+        .alert {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            display: none;
+            text-align: center;
+        }
+        .alert.success {
+            background-color: rgba(56,139,60,0.15);
+            color: #3fb950;
+            border: 1px solid rgba(56,139,60,0.4);
+        }
+        .alert.error {
+            background-color: rgba(248,81,73,0.15);
+            color: #f85149;
+            border: 1px solid rgba(248,81,73,0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Subir Nueva APK</h1>
+    <p class="subtitle">Ecosistema Temático MundoGrupos</p>
+
+    <div id="alertBox" class="alert"></div>
+
+    <form id="apkForm">
+        <div class="row">
+            <div class="form-group">
+                <label for="apkId">ID Único (URL Slug)</label>
+                <input type="text" id="apkId" placeholder="ej: whatsapp-plus" required>
+            </div>
+            <div class="form-group">
+                <label for="categoria">Categoría</label>
+                <select id="categoria">
+                    <option value="Social">Social / Chats</option>
+                    <option value="Juegos">Juegos</option>
+                    <option value="Herramientas">Herramientas</option>
+                    <option value="Productividad">Productividad</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="titulo">Título de la Aplicación</label>
+            <input type="text" id="titulo" placeholder="ej: WhatsApp Plus v19.50 Antiban" required>
+        </div>
+
+        <div class="row">
+            <div class="form-group">
+                <label for="version">Versión</label>
+                <input type="text" id="version" placeholder="ej: v19.50">
+            </div>
+            <div class="form-group">
+                <label for="peso">Peso del Archivo</label>
+                <input type="text" id="peso" placeholder="ej: 72 MB">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label for="linkMediafire">Enlace Principal (MediaFire)</label>
+            <input type="url" id="linkMediafire" placeholder="https://www.mediafire.com/file/..." required>
+        </div>
+
+        <div class="form-group">
+            <label for="linkMega">Enlace de Respaldo (Mega)</label>
+            <input type="url" id="linkMega" placeholder="https://mega.nz/file/...">
+        </div>
+
+        <div class="form-group">
+            <label for="descripcion">Descripción (Enfoque SEO)</label>
+            <textarea id="descripcion" rows="4" placeholder="Escribe una descripción atractiva con palabras clave para posicionar en Google..."></textarea>
+        </div>
+
+        <button type="submit">Guardar en Base de Datos</button>
+    </form>
+</div>
+
+<script>
+    document.getElementById('apkForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        const alertBox = document.getElementById('alertBox');
+        alertBox.style.display = 'none';
+
+        const data = {
+            id: document.getElementById('apkId').value.trim().toLowerCase(),
+            titulo: document.getElementById('titulo').value.trim(),
+            descripcion: document.getElementById('descripcion').value.trim(),
+            version: document.getElementById('version').value.trim() || 'N/A',
+            peso: document.getElementById('peso').value.trim() || 'N/A',
+            link_mediafire: document.getElementById('linkMediafire').value.trim(),
+            link_mega: document.getElementById('linkMega').value.trim() || '',
+            categoria: document.getElementById('categoria').value
+        };
+
+        try {
+            const response = await fetch('/apks/agregar', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+
+            if (response.ok && result.success) {
+                alertBox.className = 'alert success';
+                alertBox.innerText = '¡Éxito! La APK se guardó correctamente.';
+                alertBox.style.display = 'block';
+                document.getElementById('apkForm').reset();
+            } else {
+                throw new Error(result.error || 'Error desconocido al guardar');
+            }
+        } catch (error) {
+            alertBox.className = 'alert error';
+            alertBox.innerText = error.message;
+            alertBox.style.display = 'block';
+        }
+    });
+</script>
+
+</body>
+</html>

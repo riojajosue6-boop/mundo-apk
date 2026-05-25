@@ -4,6 +4,10 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
+// Servir el panel de administración de forma sencilla
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
 const PORT = process.env.PORT || 3000;
 
 // Configuración de la base de datos segura en el Volumen de Railway

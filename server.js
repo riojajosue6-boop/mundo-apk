@@ -4,10 +4,6 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-// Servir el panel de administración de forma sencilla
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
 const PORT = process.env.PORT || 3000;
 
 // Configuración de la base de datos segura en el Volumen de Railway
@@ -29,9 +25,19 @@ db.prepare(`
     )
 `).run();
 
+// 🔥 CRUCIAL: Esto va ANTES de las rutas para poder procesar la información del panel
 app.use(express.json());
 
-// 1. RUTA PRINCIPAL: Listar todas las APKs (Para tu portada de descargas)
+// -------------------------------------------------------------------------
+// 📑 VISTAS Y RUTAS DEL PANEL DE CONTROL
+// -------------------------------------------------------------------------
+
+// Servir la interfaz visual de administración de forma sencilla
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+// 1. RUTA PRINCIPAL: Listar todas las APKs (Para tu futura portada de descargas)
 app.get('/apks', (req, res) => {
     try {
         const rows = db.prepare('SELECT id, titulo, version, peso, categoria FROM apks').all();
@@ -55,8 +61,8 @@ app.get('/apks/:id', (req, res) => {
     }
 });
 
-// 3. RUTA ADMIN: Para que tú puedas subir nuevas APKs desde Postman o tu frontend
-app.post('/apks/agregar', (express.json()), (req, res) => {
+// 3. RUTA ADMIN: Guarda las nuevas APKs que envías desde el formulario de admin.html
+app.post('/apks/agregar', (req, res) => {
     const { id, titulo, descripcion, version, peso, link_mediafire, link_mega, categoria } = req.body;
     
     if (!id || !titulo || !link_mediafire) {
@@ -75,6 +81,9 @@ app.post('/apks/agregar', (express.json()), (req, res) => {
     }
 });
 
+// -------------------------------------------------------------------------
+// 🚀 INICIALIZACIÓN DEL SERVIDOR
+// -------------------------------------------------------------------------
 app.listen(PORT, () => {
     console.log(`Servidor de descargas corriendo en http://localhost:${PORT}`);
     console.log(`Base de datos SQLite activa en: ${dbPath}`);
